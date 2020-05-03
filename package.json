@@ -1,0 +1,12 @@
+{
+  "name": "byrnesjs",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^25.5.4"
+  },
+  "scripts": {
+    "test": "jest"
+  }
+}
