@@ -8,6 +8,8 @@ It allows to you only give permissions to access the filesystem, network, or she
 
 ## Installation
 
+Note: This has only been tested on Node 12.x
+
 ### Yarn
 ```bash
 yarn install byrnesjs
