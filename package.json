@@ -1,6 +1,10 @@
 {
   "name": "byrnesjs",
   "version": "0.0.1",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/ashward/byrnesjs"
+  },
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
