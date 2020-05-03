@@ -58,11 +58,15 @@ module.exports = {
 
     byrnesInitialised = true;
 
-    // Merge the supplies allow list
+    // Merge the supplied allow list
     const allows = [...defaultAllowList];
 
     if (options.allow) {
       allows.push(...options.allow);
+    }
+
+    if(!options.rootDir) {
+      throw new Error('rootDir is required');
     }
 
     // And the rest of the options
@@ -75,6 +79,7 @@ module.exports = {
           : console.error,
     };
 
+    // Refactor the allow list into something more useful to check against
     const allowByOperation = {};
 
     allows.forEach((allow) => {
@@ -106,6 +111,7 @@ module.exports = {
       });
     });
 
+    // This function is called by the privileged function wrapper to do the actual check
     function doFunctionCall(
       privilegeId,
       actualFunc,
@@ -150,6 +156,7 @@ module.exports = {
       return actualFunc.apply(thisArg, args);
     }
 
+    // This checks a single stack entry for a certain operation
     function checkAllowed(path, operation) {
       if (path in allowCache) {
         if (operation in allowCache[path]) {
@@ -187,6 +194,7 @@ module.exports = {
       }, 1);
     }
 
+    // This goes through each of the privileged modules and wraps all the functions within
     for (const privilegeId in privilegeModules) {
       const privilegedModule = privilegeModules[privilegeId];
 

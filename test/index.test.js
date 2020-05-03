@@ -1,7 +1,7 @@
 const byrnes = require("..");
 
 byrnes.init({
-  rootDir: "",
+  rootDir: __dirname,
   allow: [
     {
       module: [
