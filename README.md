@@ -4,7 +4,7 @@ ByrnesJS is a library to allow you to limit access to some privileged operations
 
 It allows to you only give permissions to access the filesystem, network, or shell to those libraries which should be accessing them. If a library tries to access something which hasn't been given permission to access then that access will be denied.
 
-> :warning: **Note that this is experimental software. Its stability, efficacy, and performance have yet to be tested.** Feel free to try it out and raise a ticket or PR if you have any issues or suggestions.
+> :warning: **Note that this is experimental software. Its stability, efficacy, and performance have yet to be tested.** Feel free to try it out though and raise a ticket or PR if you have any issues or suggestions.
 
 ## Installation
 
