@@ -1,6 +1,14 @@
 # ByrnesJS
 
-ByrnesJS is a library to allow you to limit access to some privileged operations for your dependencies.
+When we build a NodeJS application we pull in all kinds of package dependencies to help us with all kinds of things. But how do we know that they are really doing what we think they're doing? How do you know that one of the 73 query string parsing packages you've included isn't secretly harvesting passwords and sending them to a malicious server somewhere? The fact is that unless you inspect every bit of code you import then you can't be sure.
+
+Most packages have no need for any privileged access to the network or filesystem, so what if we could stop them having access, and only give access to the libraries that really need them?
+
+For example, that query string parsing package doesn't need to access the network, the filesystem, or the shell, so let's just prevent it doing so.
+
+This is where package level sandboxing can help.
+
+ByrnesJS is a library which will prevent any code accessing privileged operations (currently 'net', 'fs', and 'child_process'), except for certain packages which you explicitly allow.
 
 It allows to you only give permissions to access the filesystem, network, or shell to those libraries which should be accessing them. If a library tries to access something which hasn't been given permission to access then that access will be denied.
 
@@ -71,7 +79,7 @@ alwaysAllow | boolean | `true` | `false` | Normally the entire call stack needs 
 ## How it works
 ByrnesJS works by wrapping all the functions within the privileged modules with code which will check the caller of that function.
 
-When one of those functions is called ByrnesJS will check the entire call stack to ensure that all of the modules within the stack are allowed to call that privileged function.
+When one of those functions is called ByrnesJS will check the entire call stack to ensure that all of the code paths within the stack are allowed to call that privileged function.
 
 ## Why ByrnesJS?
 Like Jack Byrnes, it allows you to only bring those libraries you really trust into your 'Circle of Trust'
