@@ -20,7 +20,7 @@ Note: This has only been tested on Node 12.x
 
 ### Yarn
 ```bash
-yarn install byrnesjs
+yarn add byrnesjs
 ```
 
 ### npm

@@ -11,6 +11,8 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "byrnesjs-trustedtestmodule": "./test/modules/byrnesjs-trustedtestmodule",
+    "byrnesjs-untrustedtestmodule": "./test/modules/byrnesjs-untrustedtestmodule",
     "jest": "^25.5.4"
   },
   "scripts": {
