@@ -14,6 +14,7 @@ const PRIV_VM = 'vm';
 const PRIV_DGRAM = 'dgram';
 const PRIV_DNS = 'dns';
 const PRIV_WORKER_THREADS = 'worker_threads';
+const PRIV_PROCESS = 'process';
 
 const { Worker } = require('worker_threads');
 
@@ -26,7 +27,10 @@ const controlledModules = {
   dgram: dgram,
   dns: dns,
   worker_threads: worker_threads,
+  process: process
 };
+
+const processKeysToOverride = ['binding', 'abort', 'exit', 'chdir', 'dlopen', 'initgroups', 'kill', 'setegid', 'seteuid', 'setgid', 'setgroups', 'umask'];
 
 // This is a flag to ensure it's only initialised once
 let byrnesInitialised = false;
@@ -80,7 +84,7 @@ const defaultAllowList = [
   {
     module: 'child_process.js',
     privileges: [PRIV_CHILD_PROCESS, PRIV_NETWORK],
-  },
+  }
 ];
 
 // This pattern is used to parse the stack entries
@@ -95,6 +99,7 @@ module.exports = {
   PRIV_DGRAM,
   PRIV_DNS,
   PRIV_WORKER_THREADS,
+  PRIV_PROCESS,
 
   init: (options) => {
     // Prevent the library being initialised multiple times
@@ -194,6 +199,7 @@ module.exports = {
     // This function is called by the privileged function wrapper to do the actual check
     function doFunctionCall(
       privilegeId,
+      functionName,
       actualFunc,
       stackString,
       thisArg,
@@ -210,7 +216,7 @@ module.exports = {
         if (!allowed) {
           if (opts.logOnly) {
             logIssue(
-              `ByrnesJS: Detected unexpected access to '${privilegeId}.${actualFunc.name}()' from '${stackEntry}'`
+              `ByrnesJS: Detected unexpected access to '${privilegeId}.${functionName}()' from '${stackEntry}'`
             );
 
             if (opts.logOnlyStack) {
@@ -220,7 +226,7 @@ module.exports = {
             //            break;
           } else {
             const error = new Error(
-              `ByrnesJS: Access to '${privilegeId}.${actualFunc.name}()' is denied from '${stackEntry}'`
+              `ByrnesJS: Access to '${privilegeId}.${functionName}()' is denied from '${stackEntry}'`
             );
 
             logIssue(error.message);
@@ -280,7 +286,20 @@ module.exports = {
     for (const privilegeId in controlledModules) {
       const privilegedModule = controlledModules[privilegeId];
 
-      for (const key in privilegedModule) {
+      let keys;
+
+      if(privilegeId === 'process') {
+        // We will only override certain functions in process as it's so commonly used
+        keys = processKeysToOverride;
+      } else {
+        keys = [];
+
+        for (const key in privilegedModule) {
+          keys.push(key);
+        }
+      }
+
+      for (const key of keys) {
         if (
           privilegedModule.hasOwnProperty(key) &&
           typeof privilegedModule[key] == 'function'
@@ -294,6 +313,7 @@ module.exports = {
 
               return await doFunctionCall(
                 privilegeId,
+                key,
                 actualFunc,
                 stackString,
                 this,
@@ -307,6 +327,7 @@ module.exports = {
 
               return doFunctionCall(
                 privilegeId,
+                key,
                 actualFunc,
                 stackString,
                 this,

@@ -6,9 +6,9 @@ Most packages have no need for any privileged access to the network or filesyste
 
 For example, that query string parsing package doesn't need to access the network, the filesystem, or the shell, so let's just prevent it doing so.
 
-This is where package level sandboxing can help.
+This is where package sandboxing can help.
 
-ByrnesJS is a library which will prevent any code accessing privileged operations (currently 'net', 'fs', and 'child_process'), except for certain packages which you explicitly allow.
+ByrnesJS is a library which will prevent any code accessing privileged operations, except for certain packages which you explicitly allow.
 
 It allows to you only give permissions to access the filesystem, network, or shell to those libraries which should be accessing them. If a library tries to access something which hasn't been given permission to access then that access will be denied.
 
@@ -64,7 +64,7 @@ Option  | Type | Example | Default | Description
 rootDir | String | `__dirname` | \<required> | This is the root directory which will be used for path based allow entries.
 logOnly | boolean | `true` | `false` | If set to `true` then any violations will only be logged. If `false` then violations will throw an `Error`
 violationLogger | function | `(message) => console.log(message)` | `console.error` | A callback function to which violation messages will be sent.
-allow | Array | <see usage example> | `[]` | Sets the list of trusted libraries (and code) - see below
+allow | Array | *\<see usage example>* | `[]` | Sets the list of trusted libraries (and code) - see below
 
 ### Allow
 
@@ -75,6 +75,21 @@ Option  | Type | Example | Default | Description
 module | String \| Array | `['/', 'node_modules/trustedmodule/']` | \<required> | Either a single string or array of strings to specify the module to allow. If it begins with `node_modules` then it is treated specially and will apply to that module. Otherwise it points to a path relative to `rootDir`
 privileges | String \| Array | `['fs', 'net]` | \<required> | Defines the privileges to be allowed. Should either be the string `'*'` which means allow all privileges, or an array containing one or more of the privileged module names: `net`, `fs`, or `child_process`
 alwaysAllow | boolean | `true` | `false` | Normally the entire call stack needs to be trusted in order for the call to be allowed. However, if one of the entries has `alwaysAllow` set to `true` then the call will be allowed even if there are untrusted entries further down the stack. This should be used sparingly as it allows a path for untrusted code to call privileged functions.
+
+### Controlled Privileges
+
+The privileges to which access can be controlled are:
+
+Module | Module ID | Description
+-------|-----------|------------
+File System | `fs` | The fs module provides an API for interacting with the file system.
+Network | `net` | The net module provides an asynchronous network API for creating stream-based TCP or IPC servers and clients.
+Child Processes | `child_process` | The child_process module provides the ability to spawn child processes.
+Virtual Machine | `vm` | The vm module enables compiling and running code within V8 Virtual Machine contexts.
+UDP/Datagram | `dgram` | The dgram module provides an implementation of UDP Datagram sockets.
+DNS | `dns` | The dns module enables name resolution.
+Worker Threads | `worker_threads` | The worker_threads module enables the use of threads that execute JavaScript in parallel.
+Process | `process` | The process object is a global that provides information about, and control over, the current Node.js process. Note that only some functions are overridden on this object.
 
 ## How it works
 ByrnesJS works by wrapping all the functions within the privileged modules with code which will check the caller of that function.

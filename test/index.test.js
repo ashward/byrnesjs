@@ -128,3 +128,16 @@ test('It disallows worker_threads access to untrusted module', () => {
     untrusted.testWorkerThreads();
   }).toThrow();
 });
+
+
+test('It allows process access to trusted module', () => {
+  expect(() => {
+    trusted.testProcess();
+  }).not.toThrow();
+});
+
+test('It disallows process access to untrusted module', () => {
+  expect(() => {
+    untrusted.testProcess();
+  }).toThrow();
+});

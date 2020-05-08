@@ -33,5 +33,9 @@ module.exports = {
 
     testWorkerThreads: () => {
         new Worker('const a = 1;', { eval: true });
+    },
+
+    testProcess: () => {
+        process.chdir('.');
     }
 }
