@@ -1,6 +1,6 @@
 # ByrnesJS
 
-Package Sandboxing for NodeSJ
+Package Sandboxing for NodeJS
 
 When we build a NodeJS application we pull in all kinds of package dependencies to help us with all kinds of things. But how do we know that they are really doing what we think they're doing? How do you know that one of the 73 query string parsing packages you've included isn't secretly harvesting passwords and sending them to a malicious server somewhere? The fact is that unless you inspect every bit of code you import then you can't be sure.
 
