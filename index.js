@@ -1,22 +1,22 @@
-const fs = require('fs');
-const net = require('net');
-const child_process = require('child_process');
-const vm = require('vm');
-const dgram = require('dgram');
-const dns = require('dns');
-const worker_threads = require('worker_threads');
+const fs = require("fs");
+const net = require("net");
+const child_process = require("child_process");
+const vm = require("vm");
+const dgram = require("dgram");
+const dns = require("dns");
+const worker_threads = require("worker_threads");
 
-const PRIV_ALL = '*';
-const PRIV_FILESYSTEM = 'fs';
-const PRIV_NETWORK = 'net';
-const PRIV_CHILD_PROCESS = 'child_process';
-const PRIV_VM = 'vm';
-const PRIV_DGRAM = 'dgram';
-const PRIV_DNS = 'dns';
-const PRIV_WORKER_THREADS = 'worker_threads';
-const PRIV_PROCESS = 'process';
+const PRIV_ALL = "*";
+const PRIV_FILESYSTEM = "fs";
+const PRIV_NETWORK = "net";
+const PRIV_CHILD_PROCESS = "child_process";
+const PRIV_VM = "vm";
+const PRIV_DGRAM = "dgram";
+const PRIV_DNS = "dns";
+const PRIV_WORKER_THREADS = "worker_threads";
+const PRIV_PROCESS = "process";
 
-const { Worker } = require('worker_threads');
+const { Worker } = require("worker_threads");
 
 // These are the controlled modules
 const controlledModules = {
@@ -27,10 +27,24 @@ const controlledModules = {
   dgram: dgram,
   dns: dns,
   worker_threads: worker_threads,
-  process: process
+  process: process,
 };
 
-const processKeysToOverride = ['binding', 'abort', 'exit', 'chdir', 'dlopen', 'initgroups', 'kill', 'setegid', 'seteuid', 'setgid', 'setgroups', 'umask'];
+// We only override some of the function on 'process'
+const processKeysToOverride = [
+  "binding",
+  "abort",
+  "exit",
+  "chdir",
+  "dlopen",
+  "initgroups",
+  "kill",
+  "setegid",
+  "seteuid",
+  "setgid",
+  "setgroups",
+  "umask",
+];
 
 // This is a flag to ensure it's only initialised once
 let byrnesInitialised = false;
@@ -40,55 +54,57 @@ const allowCache = {};
 const defaultAllowList = [
   {
     // This is to allow 'require()' to work from anywhere
-    module: 'internal/modules/cjs/loader.js',
+    module: "internal/modules/cjs/loader.js",
     privileges: [PRIV_FILESYSTEM],
     alwaysAllow: true,
   },
   {
     // This is to allow 'new Buffer()' to work from anywhere
-    module: 'internal/util.js',
+    module: "internal/util.js",
     privileges: [PRIV_VM],
     alwaysAllow: true,
   },
   {
     // This is to allow this library to access everything (as it will always be in the call stack)
-    module: [__dirname, 'node_modules/byrnesjs/'],
+    module: [__dirname, "node_modules/byrnesjs/"],
     privileges: PRIV_ALL,
   },
   {
     // Allow anonymous blocks and internal NodeJS code
-    module: ['<anonymous>', 'internal/'],
+    module: ["<anonymous>", "internal/"],
     privileges: PRIV_ALL,
   },
   {
     // This is the set of internal libraries which access the filesystem
     module: [
-      'fs.js',
-      'events.js',
-      '_stream_writable.js',
-      'timers.js',
-      'net.js',
+      "fs.js",
+      "events.js",
+      "_stream_writable.js",
+      "timers.js",
+      "net.js",
     ],
     privileges: [PRIV_FILESYSTEM],
   },
   {
     // This is the set of internal libararies which access the network
-    module: ['tty.js', 'http.js', '_http_server.js'],
+    module: ["tty.js", "http.js", "_http_server.js"],
     privileges: [PRIV_NETWORK],
   },
   {
     // This is the set of internal libararies which access the network
-    module: 'net.js',
+    module: "net.js",
     privileges: [PRIV_DNS],
   },
   {
-    module: 'child_process.js',
+    module: "child_process.js",
     privileges: [PRIV_CHILD_PROCESS, PRIV_NETWORK],
-  }
+  },
 ];
 
 // This pattern is used to parse the stack entries
 const stackEntryPattern = /^\s+at\s[^(]+\((([^:)]+):\d*:?\d*)\)$/gm;
+
+const nodeModulePattern = /^node_modules\/[^\/]+$/;
 
 module.exports = {
   PRIV_ALL,
@@ -104,7 +120,7 @@ module.exports = {
   init: (options) => {
     // Prevent the library being initialised multiple times
     if (byrnesInitialised) {
-      throw new Error('ByrnesJS is already initialised');
+      throw new Error("ByrnesJS is already initialised");
     }
 
     byrnesInitialised = true;
@@ -117,7 +133,7 @@ module.exports = {
     }
 
     if (!options.rootDir) {
-      throw new Error('rootDir is required');
+      throw new Error("rootDir is required");
     }
 
     // And the rest of the options
@@ -127,7 +143,7 @@ module.exports = {
       logger: options.logger || console,
       logOnlyStack: options.logOnlyStack || false,
       violationLogger:
-        options.violationLogger && typeof options.violationLogger == 'function'
+        options.violationLogger && typeof options.violationLogger == "function"
           ? options.violationLogger
           : console.error,
     };
@@ -140,7 +156,7 @@ module.exports = {
         ? allow.privileges
         : [allow.privileges];
 
-      if (privileges.includes('*')) {
+      if (privileges.includes("*")) {
         privileges = Object.keys(controlledModules);
       }
 
@@ -158,6 +174,13 @@ module.exports = {
           ];
         }
 
+        // If it's a 'node_module' allow and doesn't have a slash then add one.
+        newAllows.forEach((allow) => {
+          if(allow.path.match(nodeModulePattern)) {
+            allow.path += "/";
+          }
+        });
+
         if (allowByOperation[privilege]) {
           allowByOperation[privilege].push(...newAllows);
         } else {
@@ -173,13 +196,13 @@ module.exports = {
     const loggingMessages = [];
 
     // Unref the thread when it starts so that it doesn't hold the process open
-    loggingWorker.on('online', () => {
+    loggingWorker.on("online", () => {
       if (loggingMessages.length == 0) {
         loggingWorker.unref();
       }
     });
 
-    loggingWorker.on('message', () => {
+    loggingWorker.on("message", () => {
       while (loggingMessages.length > 0) {
         const message = loggingMessages.shift();
         opts.violationLogger(message);
@@ -263,7 +286,7 @@ module.exports = {
 
       let stackEntry = path;
 
-      const nodeModulesRoot = stackEntry.lastIndexOf('node_modules');
+      const nodeModulesRoot = stackEntry.lastIndexOf("node_modules");
 
       if (nodeModulesRoot > -1) {
         stackEntry = stackEntry.substring(nodeModulesRoot);
@@ -288,7 +311,7 @@ module.exports = {
 
       let keys;
 
-      if(privilegeId === 'process') {
+      if (privilegeId === "process") {
         // We will only override certain functions in process as it's so commonly used
         keys = processKeysToOverride;
       } else {
@@ -302,12 +325,12 @@ module.exports = {
       for (const key of keys) {
         if (
           privilegedModule.hasOwnProperty(key) &&
-          typeof privilegedModule[key] == 'function'
+          typeof privilegedModule[key] == "function"
         ) {
           // If it's a function then we will wrap it with our access check code
           const actualFunc = privilegedModule[key];
 
-          if (actualFunc.constructor.name === 'AsyncFunction') {
+          if (actualFunc.constructor.name === "AsyncFunction") {
             privilegedModule[key] = async function () {
               const stackString = new Error().stack;
 
