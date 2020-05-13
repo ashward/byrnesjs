@@ -109,14 +109,15 @@ When one of those functions is called ByrnesJS will check the entire call stack 
 
 ## Limitations
 
-Due to being implemented as a pur Javascript library there are certain limitations to the current implementation:
+Due to being implemented as a pure Javascript library there are certain limitations to the current implementation:
 
-- Packages can include native code which can't be intercepted by this library. This would require some deeper support in the VM to intercept.
--
+- Packages can include native code which can't be intercepted by this library. This would require some deeper support in the VM or OS to intercept.
+- While I think I've covered all the bases, because it's implemented at a high level there may be some ways I've missed for mailicious code to get hold of the original non-overidden functions. If you spot any ways around it then please raise an issue!
+- Some packages run scripts at the install stage (unsing the preinstall and postinstall scripts). Because ByrnesJS currently only runs at runtime it won't sandbox these scripts. You can use the `--ignore-scripts` flag on yarn or npm to prevent these scripts running but that will probably break stuff!
 
 ## Why "ByrnesJS?"
 
-Like Jack Byrnes, it allows you to only bring those libraries you really trust into your 'Circle of Trust'
+Like Jack Byrnes, it allows you to only bring those libraries you really trust into your 'Circle of Trust'. https://www.google.com/search?q=jack+byrnes+circle+of+trust
 
 ## Contributing
 
