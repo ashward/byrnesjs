@@ -25,7 +25,7 @@ try {
   // If 'yarn.js' isn't in the same dir as the yarn' script
   // then we will try and parse its location from the script
   if (!FS.existsSync(Path.resolve(yarnDir, "yarn.js"))) {
-    FS.readdirSync(yarnDir).forEach(console.log);
+    FS.readdirSync(yarnDir).forEach(item => console.log(item));
 
     var yarnScript = FS.readFileSync(yarnFile).toString();
 
