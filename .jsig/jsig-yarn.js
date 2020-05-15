@@ -20,7 +20,7 @@ console.log(process.env);
 try {
   var yarnFile = ChildProcess.execSync("which yarn").toString().trim();
 
-  yarnDir = FS.realpath(Path.dirname(yarnFile));
+  yarnDir = FS.realpathSync(Path.dirname(yarnFile));
 
   // If 'yarn.js' isn't in the same dir as the yarn' script
   // then we will try and parse its location from the script.
