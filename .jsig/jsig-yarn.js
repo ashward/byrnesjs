@@ -27,6 +27,8 @@ try {
   if (!FS.existsSync(Path.resolve(yarnDir, "yarn.js"))) {
     var yarnScript = FS.readFileSync(yarnFile).toString();
 
+    console.log(yarnScript);
+
     var match = yarnScript.match(/([^'"]+)\/yarn\.js/);
 
     if (match) {
