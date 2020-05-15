@@ -15,15 +15,14 @@ var rootDir = process.cwd();
 // Work out where the actual yarn installation is
 var yarnDir;
 
-console.log(process.env);
-
 try {
   var yarnFile = ChildProcess.execSync("which yarn").toString().trim();
 
-  yarnDir = Path.dirname(yarnFile);
+  yarnDir = Path.dirname(FS.realpathSync(yarnFile));
 
   // If 'yarn.js' isn't in the same dir as the yarn' script
-  // then we will try and parse its location from the script
+  // then we will try and parse its location from the script.
+  // This seems to happen in some Hmoebrew installations
   if (!FS.existsSync(Path.resolve(yarnDir, "yarn.js"))) {
     var yarnScript = FS.readFileSync(yarnFile).toString();
 
@@ -31,9 +30,6 @@ try {
 
     if (match) {
       yarnDir = match[1];
-
-      // Resolve any environment variables in the path
-      yarnDir = yarnDir.replace(/\$([A-Z_]+[A-Z0-9_]*)|\${([A-Z0-9_]*)}/ig, (_, a, b) => process.env[a || b]);
     } else {
       throw new Error(
         `Could not determine yarn.js path from yarn script ${yarnScript}`
