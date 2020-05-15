@@ -15,12 +15,10 @@ var rootDir = process.cwd();
 // Work out where the actual yarn installation is
 var yarnDir;
 
-console.log(process.env);
-
 try {
   var yarnFile = ChildProcess.execSync("which yarn").toString().trim();
 
-  yarnDir = FS.realpathSync(Path.dirname(yarnFile));
+  yarnDir = Path.dirname(FS.realpathSync(yarnFile));
 
   // If 'yarn.js' isn't in the same dir as the yarn' script
   // then we will try and parse its location from the script.
