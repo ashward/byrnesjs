@@ -15,6 +15,8 @@ var rootDir = process.cwd();
 // Work out where the actual yarn installation is
 var yarnDir;
 
+console.log(process.env);
+
 try {
   var yarnFile = ChildProcess.execSync("which yarn").toString().trim();
 
