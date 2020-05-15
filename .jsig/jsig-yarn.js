@@ -29,6 +29,9 @@ try {
 
     if (match) {
       yarnDir = match[1];
+
+      // Resolve any environment variables in the path
+      yarnDir = yarnDir.replace(/\$([A-Z_]+[A-Z0-9_]*)|\${([A-Z0-9_]*)}/ig, (_, a, b) => process.env[a || b]);
     } else {
       throw new Error(
         `Could not determine yarn.js path from yarn script ${yarnScript}`
